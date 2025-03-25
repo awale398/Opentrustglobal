@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
+    "@tanstack/react-query": "^5.69.0",
+    "autoprefixer": "^10.4.21",
+    "axios": "^1.8.4",
+    "chart.js": "^4.4.8",
+    "jwt-decode": "^4.0.0",
+    "postcss": "^8.5.3",
+    "react-chartjs-2": "^5.3.0",
+    "react-hook-form": "^7.54.2",
+    "react-router-dom": "^6.30.0",
+    "tailwindcss": "^4.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.10"
+  }
+}
