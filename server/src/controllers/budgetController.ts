@@ -1,39 +1,47 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import Budget from '../models/Budget';
 import { AuthenticatedRequest } from '../types/custom';
 
 // Create a new budget
 export const createBudget = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
     const budget = await Budget.create({
       ...req.body,
-      createdBy: req.user?.id // This will be set by the auth middleware
+      createdBy: userId
     });
+
     res.status(201).json({
       success: true,
       data: budget
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error creating budget'
-    });
+    console.error('Create budget error:', error);
+    res.status(500).json({ success: false, message: 'Error creating budget' });
   }
 };
 
 // Get all budgets
 export const getBudgets = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const budgets = await Budget.find().populate('createdBy', 'name email');
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    const budgets = await Budget.find({ createdBy: userId });
+
     res.json({
       success: true,
       data: budgets
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching budgets'
-    });
+    console.error('Get budgets error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching budgets' });
   }
 };
 
@@ -62,69 +70,54 @@ export const getBudgetById = async (req: AuthenticatedRequest, res: Response) =>
 // Update a budget
 export const updateBudget = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const budget = await Budget.findById(req.params.id);
-    if (!budget) {
-      return res.status(404).json({
-        success: false,
-        message: 'Budget not found'
-      });
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
     }
 
-    // Check if user is the creator or admin
-    if (budget.createdBy.toString() !== req.user?.id && req.user?.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this budget'
-      });
-    }
-
-    const updatedBudget = await Budget.findByIdAndUpdate(
-      req.params.id,
+    const budget = await Budget.findOneAndUpdate(
+      { _id: req.params.id, createdBy: userId },
       req.body,
       { new: true }
     );
 
+    if (!budget) {
+      return res.status(404).json({ success: false, message: 'Budget not found' });
+    }
+
     res.json({
       success: true,
-      data: updatedBudget
+      data: budget
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error updating budget'
-    });
+    console.error('Update budget error:', error);
+    res.status(500).json({ success: false, message: 'Error updating budget' });
   }
 };
 
 // Delete a budget
 export const deleteBudget = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const budget = await Budget.findById(req.params.id);
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    const budget = await Budget.findOneAndDelete({
+      _id: req.params.id,
+      createdBy: userId
+    });
+
     if (!budget) {
-      return res.status(404).json({
-        success: false,
-        message: 'Budget not found'
-      });
+      return res.status(404).json({ success: false, message: 'Budget not found' });
     }
-
-    // Check if user is the creator or admin
-    if (budget.createdBy.toString() !== req.user?.id && req.user?.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to delete this budget'
-      });
-    }
-
-    await budget.deleteOne();
 
     res.json({
       success: true,
       message: 'Budget deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting budget'
-    });
+    console.error('Delete budget error:', error);
+    res.status(500).json({ success: false, message: 'Error deleting budget' });
   }
 }; 

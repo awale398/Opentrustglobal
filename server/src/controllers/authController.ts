@@ -10,8 +10,8 @@ export const register = async (req: Request, res: Response) => {
     console.log('Registration attempt for:', email);
 
     // Check if user exists
-    let user = await User.findOne({ email });
-    if (user) {
+    const userExists = await User.findOne({ email });
+    if (userExists) {
       console.log('User already exists:', email);
       return res.status(400).json({
         success: false,
@@ -20,18 +20,18 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Create user (password will be hashed by the pre-save hook)
-    user = await User.create({
+    const user = await User.create({
       name,
       email,
       password,
-      role
+      role: role || 'citizen'
     });
     console.log('User created successfully:', user._id);
 
     // Create token
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
+      { _id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '30d' }
     );
     console.log('JWT token created for user:', user._id);
@@ -40,7 +40,7 @@ export const register = async (req: Request, res: Response) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role
@@ -50,7 +50,7 @@ export const register = async (req: Request, res: Response) => {
     console.error('Registration error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error creating user'
+      message: 'Error registering user'
     });
   }
 };
@@ -71,7 +71,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     console.log('User found:', {
-      id: user._id,
+      _id: user._id,
       email: user.email,
       role: user.role,
       hasPassword: !!user.password
@@ -91,11 +91,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Create token with proper payload
     const token = jwt.sign(
-      { 
-        id: user._id, 
-        email: user.email, 
-        role: user.role 
-      },
+      { _id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '30d' }
     );
@@ -108,7 +104,7 @@ export const login = async (req: Request, res: Response) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role
@@ -132,14 +128,15 @@ export const logout = (req: Request, res: Response) => {
 
 export const getProfile = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    if (!req.user?.id) {
+    const userId = req.user?._id;
+    if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Not authorized to access this route'
+        message: 'Not authenticated'
       });
     }
 
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(userId).select('-password');
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -149,17 +146,18 @@ export const getProfile = async (req: AuthenticatedRequest, res: Response) => {
 
     res.json({
       success: true,
-      data: {
-        id: user._id,
+      user: {
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role
       }
     });
   } catch (error) {
+    console.error('Get profile error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching profile'
+      message: 'Error getting profile'
     });
   }
 }; 

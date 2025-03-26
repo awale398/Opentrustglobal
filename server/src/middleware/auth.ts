@@ -1,14 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import User from '../models/User';
 import { AuthenticatedRequest } from '../types/custom';
 
 interface JwtPayload {
-  id: string;
+  _id: string;
   email: string;
   role: string;
 }
 
-export const protect = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let token;
 
@@ -17,31 +18,28 @@ export const protect = async (req: AuthenticatedRequest, res: Response, next: Ne
     }
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Not authorized to access this route'
-      });
+      return res.status(401).json({ success: false, message: 'Not authorized to access this route' });
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-        id: string;
-        email: string;
-        role: string;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as JwtPayload;
+      const user = await User.findById(decoded._id).select('-password');
+
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'User not found' });
+      }
+
+      (req as any).user = {
+        _id: user._id,
+        email: user.email,
+        role: user.role
       };
-      req.user = decoded;
       next();
     } catch (error) {
-      return res.status(401).json({
-        success: false,
-        message: 'Not authorized to access this route'
-      });
+      return res.status(401).json({ success: false, message: 'Not authorized to access this route' });
     }
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server Error'
-    });
+    next(error);
   }
 };
 
