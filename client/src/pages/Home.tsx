@@ -7,6 +7,44 @@ import { ExpenditureTrendChart } from '../components/charts/ExpenditureTrendChar
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
+interface Budget {
+  _id: string;
+  projectName: string;
+  department: string;
+  allocatedAmount: number;
+  spentAmount: number;
+  status: string;
+  createdBy: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+}
+
+interface ApiResponse {
+  success: boolean;
+  data: Budget[];
+}
+
+interface DepartmentSummary {
+  department: string;
+  allocated: number;
+  spent: number;
+  budgetCount: number;
+  utilizationRate: number;
+}
+
+interface MonthlyData {
+  month: string;
+  amount: number;
+  cumulativeAmount: number;
+}
+
+interface SpendingData {
+  department: string;
+  spent: number;
+}
+
 // Mock data for testing
 const mockDepartmentData = [
   {
@@ -84,11 +122,13 @@ const Home = () => {
   const navigate = useNavigate();
 
   // Use mock data instead of API calls for testing
-  const { data: reportsData, isLoading: reportsLoading } = useQuery({
+  const { data: reportsData, isLoading: reportsLoading, error: reportsError } = useQuery({
     queryKey: ['reports'],
     queryFn: async () => {
       try {
-        const response = await axios.get('/reports');
+        console.log('Fetching reports data...');
+        const response = await axios.get('/api/reports');
+        console.log('Reports data received:', response.data);
         return response.data;
       } catch (error) {
         console.error('Error fetching reports:', error);
@@ -97,38 +137,47 @@ const Home = () => {
     }
   });
 
-  const { data: monthlyData, isLoading: monthlyLoading } = useQuery({
+  const { data: monthlyData, isLoading: monthlyLoading, error: monthlyError } = useQuery({
     queryKey: ['monthly'],
     queryFn: async () => {
       try {
-        const response = await axios.get('/reports/monthly');
-        console.log('Monthly API Response:', response.data);
+        console.log('Fetching monthly data...');
+        const response = await axios.get('/api/reports/monthly');
+        console.log('Monthly data received:', response.data);
         return response.data.data || mockMonthlyData;
       } catch (error) {
         console.error('Error fetching monthly data:', error);
-        console.log('Using mock data:', mockMonthlyData);
         return mockMonthlyData;
       }
     }
   });
 
-  const { data: budgets, isLoading: budgetsLoading } = useQuery<Budget[]>(['budgets'], async () => {
+  const { data: budgets, isLoading: budgetsLoading, error: budgetsError } = useQuery<Budget[], Error>(['budgets'], async () => {
     try {
+      console.log('Fetching budgets for citizen view...');
       const response = await axios.get<ApiResponse>('/budgets');
+      console.log('Budgets received:', response.data);
       if (response.data.success && Array.isArray(response.data.data)) {
         return response.data.data;
       }
+      console.error('Invalid budget data format:', response.data);
       return [];
     } catch (error) {
       console.error('Error fetching budgets:', error);
       return [];
     }
+  }, {
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+    staleTime: 0 // Always fetch fresh data
   });
 
   // Add console logging for debugging
   React.useEffect(() => {
-    console.log('Monthly Data:', monthlyData);
-  }, [monthlyData]);
+    console.log('Current budgets:', budgets);
+    console.log('Loading state:', budgetsLoading);
+    console.log('Error state:', budgetsError);
+  }, [budgets, budgetsLoading, budgetsError]);
 
   const handleLogout = async () => {
     try {
@@ -210,7 +259,10 @@ const Home = () => {
                 Spending Distribution
               </h2>
               <SpendingPieChart
-                data={mockSpendingData}
+                data={(reportsData?.departmentSummary || mockDepartmentData).map((item: DepartmentSummary) => ({
+                  department: item.department,
+                  spent: item.spent
+                }))}
               />
             </div>
           </div>
@@ -220,56 +272,78 @@ const Home = () => {
               Monthly Expenditure Trend
             </h2>
             <ExpenditureTrendChart
-              data={mockMonthlyData}
+              data={monthlyData || mockMonthlyData}
             />
           </div>
 
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Budgets</h2>
-            <div className="space-y-4">
-              {(budgets || []).map((budget: any) => (
-                <div
-                  key={budget._id}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">{budget.projectName}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{budget.governmentDepartment}</p>
-                    </div>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        budget.status === 'completed'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : budget.status === 'active'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                      }`}
-                    >
-                      {budget.status.charAt(0).toUpperCase() + budget.status.slice(1)}
-                    </span>
-                  </div>
-                  <div className="mt-2 grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Allocated</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">${budget.allocatedAmount.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Spent</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">${budget.spentAmount.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${(budget.spentAmount / budget.allocatedAmount) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Recent Budgets</h2>
             </div>
+            {budgetsLoading && (
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            )}
+            {budgetsError && (
+              <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
+                Error loading budgets: {budgetsError.message || 'Unknown error occurred'}
+              </div>
+            )}
+            {!budgetsLoading && budgets && budgets.length > 0 ? (
+              <div className="space-y-4">
+                {budgets.map((budget) => (
+                  <div
+                    key={budget._id}
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">{budget.projectName}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{budget.department}</p>
+                      </div>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          budget.status === 'completed'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : budget.status === 'active'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                        }`}
+                      >
+                        {budget.status.charAt(0).toUpperCase() + budget.status.slice(1)}
+                      </span>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Allocated</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                          ${budget.allocatedAmount.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Spent</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                          ${budget.spentAmount.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${(budget.spentAmount / budget.allocatedAmount) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400">No budgets available at the moment.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

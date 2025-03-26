@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,26 +12,38 @@ export const Login = () => {
   const location = useLocation();
   const { login } = useAuth();
 
-  const from = location.state?.from?.pathname || '/';
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      const userData = await login(email, password);
-      console.log('Login successful, user role:', userData.role); // Debug log
-      
-      if (userData.role === 'admin') {
-        console.log('Redirecting to admin dashboard'); // Debug log
-        navigate('/admin');
+      console.log('Attempting login for:', email);
+      const response = await login(email, password);
+      console.log('Login response:', response);
+
+      if (response.success && response.token) {
+        // Store token in localStorage
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        
+        // Set axios default header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.token}`;
+        
+        console.log('Login successful, navigating...');
+        
+        // Navigate based on user role
+        if (response.user.role === 'admin') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
       } else {
-        console.log('Redirecting to home page'); // Debug log
-        navigate(from);
+        throw new Error(response.message || 'Login failed');
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || err.message || 'Invalid credentials');
     } finally {
       setIsLoading(false);
     }

@@ -1,23 +1,31 @@
 import express from 'express';
-import { 
-  createBudget, 
-  getBudgets, 
-  getBudgetById, 
-  updateBudget, 
-  deleteBudget 
+import { protect, authorize } from '../middleware/auth';
+import {
+  getBudgets,
+  getBudgetById,
+  createBudget,
+  updateBudget,
+  deleteBudget
 } from '../controllers/budgetController';
-import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
-router.use(authenticateToken);
+// Protect all routes
+router.use(protect);
 
-// Budget routes
-router.post('/', createBudget);
+// Get all budgets
 router.get('/', getBudgets);
+
+// Get single budget
 router.get('/:id', getBudgetById);
-router.put('/:id', updateBudget);
-router.delete('/:id', deleteBudget);
+
+// Create budget (admin only)
+router.post('/', authorize('admin'), createBudget);
+
+// Update budget (admin only)
+router.put('/:id', authorize('admin'), updateBudget);
+
+// Delete budget (admin only)
+router.delete('/:id', authorize('admin'), deleteBudget);
 
 export default router; 

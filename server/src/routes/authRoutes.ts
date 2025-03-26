@@ -1,6 +1,6 @@
 import express from 'express';
-import { register, login, logout } from '../controllers/authController';
-import { authenticateToken } from '../middleware/auth';
+import { register, login, logout, getProfile } from '../controllers/authController';
+import { protect } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -9,6 +9,7 @@ router.post('/register', register);
 router.post('/login', login);
 
 // Protected routes
-router.post('/logout', authenticateToken, logout);
+router.post('/logout', logout);
+router.get('/profile', protect, getProfile);
 
 export default router; 

@@ -10,7 +10,9 @@ router.use(protect);
 // Get all budgets
 router.get('/', async (req, res) => {
   try {
-    const budgets = await Budget.find().sort('-createdAt');
+    const budgets = await Budget.find()
+      .populate('createdBy', 'name email')
+      .sort('-createdAt');
     res.json({
       success: true,
       count: budgets.length,
@@ -28,7 +30,8 @@ router.get('/', async (req, res) => {
 // Get single budget
 router.get('/:id', async (req, res) => {
   try {
-    const budget = await Budget.findById(req.params.id);
+    const budget = await Budget.findById(req.params.id)
+      .populate('createdBy', 'name email');
     
     if (!budget) {
       return res.status(404).json({ 

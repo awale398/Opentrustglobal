@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Register = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const location = useLocation();
+  const { register, isAuthenticated, user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,6 +15,14 @@ export const Register = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || (user?.role === 'admin' ? '/admin' : '/');
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate, location]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -35,7 +44,8 @@ export const Register = () => {
 
     try {
       await register(formData.name, formData.email, formData.password, formData.role);
-      navigate('/');
+      const from = location.state?.from?.pathname || (formData.role === 'admin' ? '/admin' : '/');
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {

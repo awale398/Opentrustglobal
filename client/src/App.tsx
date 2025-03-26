@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -12,20 +12,41 @@ import Pricing from './pages/Pricing';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const App: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        {user?.role === 'admin' && (
-          <Route path="/admin" element={<AdminDashboard />} />
-        )}
+        {/* Public routes */}
+        <Route path="/login" element={
+          isAuthenticated ? (
+            <Navigate to={user?.role === 'admin' ? '/admin' : '/'} replace />
+          ) : (
+            <Login />
+          )
+        } />
+        <Route path="/register" element={
+          isAuthenticated ? (
+            <Navigate to={user?.role === 'admin' ? '/admin' : '/'} replace />
+          ) : (
+            <Register />
+          )
+        } />
+
+        {/* Protected routes */}
         <Route
-          path="/citizen"
+          path="/admin/*"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Citizen routes */}
+        <Route
+          path="/"
           element={
             <ProtectedRoute>
               <Home />

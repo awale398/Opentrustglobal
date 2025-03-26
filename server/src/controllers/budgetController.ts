@@ -1,110 +1,130 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Budget from '../models/Budget';
+import { AuthenticatedRequest } from '../types/custom';
 
 // Create a new budget
-export const createBudget = async (req: Request, res: Response) => {
+export const createBudget = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const budget = new Budget({
+    const budget = await Budget.create({
       ...req.body,
-      createdBy: req.user.id // This will be set by the auth middleware
+      createdBy: req.user?.id // This will be set by the auth middleware
     });
-    await budget.save();
-    
-    // Populate the createdBy field with user details
-    const populatedBudget = await Budget.findById(budget._id)
-      .populate('createdBy', 'name email')
-      .lean();
-
     res.status(201).json({
       success: true,
-      data: populatedBudget,
-      message: 'Budget created successfully'
+      data: budget
     });
   } catch (error) {
-    console.error('Error creating budget:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Error creating budget',
-      errors: error instanceof Error ? error.message : 'Unknown error'
+      message: 'Error creating budget'
     });
   }
 };
 
 // Get all budgets
-export const getBudgets = async (req: Request, res: Response) => {
+export const getBudgets = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const budgets = await Budget.find()
-      .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 });
-    
+    const budgets = await Budget.find().populate('createdBy', 'name email');
     res.json({
       success: true,
       data: budgets
     });
   } catch (error) {
-    console.error('Error fetching budgets:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Error fetching budgets',
-      errors: error instanceof Error ? error.message : 'Unknown error'
+      message: 'Error fetching budgets'
     });
   }
 };
 
 // Get a single budget by ID
-export const getBudgetById = async (req: Request, res: Response) => {
+export const getBudgetById = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const budget = await Budget.findOne({
-      _id: req.params.id,
-      createdBy: req.user.id
-    }).populate('createdBy', 'name email');
-
+    const budget = await Budget.findById(req.params.id).populate('createdBy', 'name email');
     if (!budget) {
-      return res.status(404).json({ message: 'Budget not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Budget not found'
+      });
     }
-
-    res.json(budget);
+    res.json({
+      success: true,
+      data: budget
+    });
   } catch (error) {
-    console.error('Error fetching budget:', error);
-    res.status(500).json({ message: 'Error fetching budget' });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching budget'
+    });
   }
 };
 
 // Update a budget
-export const updateBudget = async (req: Request, res: Response) => {
+export const updateBudget = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const budget = await Budget.findOneAndUpdate(
-      { _id: req.params.id, createdBy: req.user.id },
+    const budget = await Budget.findById(req.params.id);
+    if (!budget) {
+      return res.status(404).json({
+        success: false,
+        message: 'Budget not found'
+      });
+    }
+
+    // Check if user is the creator or admin
+    if (budget.createdBy.toString() !== req.user?.id && req.user?.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this budget'
+      });
+    }
+
+    const updatedBudget = await Budget.findByIdAndUpdate(
+      req.params.id,
       req.body,
       { new: true }
     );
 
-    if (!budget) {
-      return res.status(404).json({ message: 'Budget not found' });
-    }
-
-    res.json(budget);
+    res.json({
+      success: true,
+      data: updatedBudget
+    });
   } catch (error) {
-    console.error('Error updating budget:', error);
-    res.status(500).json({ message: 'Error updating budget' });
+    res.status(500).json({
+      success: false,
+      message: 'Error updating budget'
+    });
   }
 };
 
 // Delete a budget
-export const deleteBudget = async (req: Request, res: Response) => {
+export const deleteBudget = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const budget = await Budget.findOneAndDelete({
-      _id: req.params.id,
-      createdBy: req.user.id
-    });
-
+    const budget = await Budget.findById(req.params.id);
     if (!budget) {
-      return res.status(404).json({ message: 'Budget not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Budget not found'
+      });
     }
 
-    res.json({ message: 'Budget deleted successfully' });
+    // Check if user is the creator or admin
+    if (budget.createdBy.toString() !== req.user?.id && req.user?.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this budget'
+      });
+    }
+
+    await budget.deleteOne();
+
+    res.json({
+      success: true,
+      message: 'Budget deleted successfully'
+    });
   } catch (error) {
-    console.error('Error deleting budget:', error);
-    res.status(500).json({ message: 'Error deleting budget' });
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting budget'
+    });
   }
 }; 

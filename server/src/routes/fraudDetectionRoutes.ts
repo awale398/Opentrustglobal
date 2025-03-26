@@ -1,21 +1,19 @@
 import express from 'express';
-import { getFraudReports, analyzeBudget } from '../controllers/fraudDetectionController';
-import { authenticateToken } from '../middleware/auth';
+import { protect, authorize } from '../middleware/auth';
+import {
+  getFraudReports,
+  analyzeBudget
+} from '../controllers/fraudDetectionController';
 
 const router = express.Router();
 
-// Logging middleware for fraud routes
-router.use((req, res, next) => {
-  console.log(`[Fraud Routes] ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
-  console.log('Body:', req.body);
-  next();
-});
+// Protect all routes
+router.use(protect);
 
 // Get all fraud reports
-router.get('/reports', authenticateToken, getFraudReports);
+router.get('/reports', authorize('admin'), getFraudReports);
 
 // Analyze a specific budget for fraud
-router.post('/analyze/:id', authenticateToken, analyzeBudget);
+router.post('/analyze/:id', authorize('admin'), analyzeBudget);
 
 export default router; 

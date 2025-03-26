@@ -3,7 +3,7 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 // Configure axios defaults
-axios.defaults.baseURL = "https://opentrust-global-backend.onrender.com";
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
@@ -22,6 +22,7 @@ axios.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -35,10 +36,17 @@ interface User {
   role: 'admin' | 'citizen';
 }
 
+interface LoginResponse {
+  success: boolean;
+  token: string;
+  user: User;
+  message?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<User>;
+  login: (email: string, password: string) => Promise<LoginResponse>;
   register: (name: string, email: string, password: string, role?: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -77,7 +85,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setToken(storedToken);
             axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
             
-            // If we have stored user data, use it immediately
             if (storedUser) {
               try {
                 const userData = JSON.parse(storedUser);
@@ -111,21 +118,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<LoginResponse> => {
     try {
-      const response = await axios.post('/auth/login', {
+      const response = await axios.post<LoginResponse>('/auth/login', {
         email,
         password,
       });
-      const { token: newToken, user: userData } = response.data;
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setToken(newToken);
-      setUser(userData);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      return userData;
+      
+      if (response.data.success) {
+        // Store token and user data
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Update state
+        setToken(response.data.token);
+        setUser(response.data.user);
+        
+        // Update axios headers
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      }
+      
+      return response.data;
     } catch (error: any) {
-      return Promise.reject(new Error(error.response?.data?.message || 'Login failed'));
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+      return Promise.reject(new Error(errorMessage));
     }
   };
 
@@ -138,10 +154,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         role
       });
       const { token: newToken, user: userData } = response.data;
+      
+      // Store token and user data
       localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Update state
       setToken(newToken);
       setUser(userData);
+      
+      // Update axios headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      
       return Promise.resolve();
     } catch (error: any) {
       return Promise.reject(new Error(error.response?.data?.message || 'Registration failed'));
@@ -168,7 +192,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     login,
     register,
     logout,
-    isAuthenticated: !!token,
+    isAuthenticated: !!token && !!user,
     isAdmin: user?.role === 'admin',
   };
 

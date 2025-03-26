@@ -11,19 +11,25 @@ export interface IUser extends Document {
   matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
-const userSchema = new Schema({
+const userSchema = new Schema<IUser>({
   name: {
     type: String,
-    required: true
+    required: [true, 'Please add a name']
   },
   email: {
     type: String,
-    required: true,
-    unique: true
+    required: [true, 'Please add an email'],
+    unique: true,
+    match: [
+      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      'Please add a valid email'
+    ]
   },
   password: {
     type: String,
-    required: true
+    required: [true, 'Please add a password'],
+    minlength: 6,
+    select: true
   },
   role: {
     type: String,
@@ -43,7 +49,7 @@ userSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Method to compare password
+// Match password method
 userSchema.methods.matchPassword = async function(enteredPassword: string): Promise<boolean> {
   return await bcrypt.compare(enteredPassword, this.password);
 };

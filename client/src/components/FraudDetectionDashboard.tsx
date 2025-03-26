@@ -35,7 +35,7 @@ const FraudDetectionDashboard: React.FC = () => {
   const { data: response, isLoading, error } = useQuery<ApiResponse>({
     queryKey: ['fraudReports'],
     queryFn: async () => {
-      const { data } = await axios.get('/api/fraud/reports');
+      const { data } = await axios.get('/fraud/reports');
       return data;
     }
   });

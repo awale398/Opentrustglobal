@@ -4,19 +4,20 @@ import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requireAdmin?: boolean;
+  allowedRoles?: string[];
 }
 
-export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-  const { isAuthenticated, isAdmin } = useAuth();
+export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && !isAdmin) {
-    return <Navigate to="/" replace />;
+  if (allowedRoles && (!user || !allowedRoles.includes(user.role))) {
+    // Redirect admin to admin dashboard, others to home
+    return <Navigate to={user?.role === 'admin' ? '/admin' : '/'} replace />;
   }
 
   return <>{children}</>;
