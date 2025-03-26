@@ -1,50 +1,61 @@
 import { Request, Response } from 'express';
-import { generateAccessToken, initiateSTKPush, checkTransactionStatus } from '../services/mpesaService';
-import Transaction from '../models/Transaction';
 import { AuthenticatedRequest } from '../types/custom';
+import Transaction from '../models/Transaction';
+import { generateAccessToken, initiateSTKPush, checkTransactionStatus } from '../services/mpesaService';
+
+// Define valid status types
+type PaymentStatus = 'completed' | 'failed' | 'pending';
 
 export const initiatePayment = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { amount, phoneNumber } = req.body;
-    const userId = req.user.id; // From auth middleware
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
 
     // Generate access token
     const accessToken = await generateAccessToken();
 
+    // Create a pending transaction
+    const transaction = await Transaction.create({
+      userId,
+      amount,
+      status: 'pending' as PaymentStatus,
+      type: 'payment',
+      phoneNumber
+    });
+
     // Initiate STK Push
     const stkResponse = await initiateSTKPush(accessToken, amount, phoneNumber);
 
-    // Create transaction record
-    const transaction = new Transaction({
-      userId,
-      amount,
-      phoneNumber,
-      merchantRequestId: stkResponse.MerchantRequestID,
-      checkoutRequestId: stkResponse.CheckoutRequestID,
-      status: 'pending'
-    });
-
+    // Update transaction with M-Pesa details
+    transaction.merchantRequestId = stkResponse.MerchantRequestID;
+    transaction.checkoutRequestId = stkResponse.CheckoutRequestID;
     await transaction.save();
 
     res.status(200).json({
       success: true,
-      message: 'Payment initiated successfully',
-      checkoutRequestId: stkResponse.CheckoutRequestID
+      data: {
+        transaction,
+        checkoutRequestId: stkResponse.CheckoutRequestID
+      }
     });
   } catch (error) {
     console.error('Payment initiation error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to initiate payment',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(500).json({ success: false, message: 'Failed to initiate payment' });
   }
 };
 
 export const getPaymentStatus = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { transactionId } = req.params;
-    const userId = req.user.id;
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
 
     const transaction = await Transaction.findOne({
       _id: transactionId,
@@ -52,31 +63,21 @@ export const getPaymentStatus = async (req: AuthenticatedRequest, res: Response)
     });
 
     if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: 'Transaction not found'
-      });
+      return res.status(404).json({ success: false, message: 'Transaction not found' });
     }
 
     // Check transaction status from M-Pesa
     const status = await checkTransactionStatus(transaction.merchantRequestId);
-
-    // Update transaction status
-    transaction.status = status;
+    transaction.status = status as PaymentStatus;
     await transaction.save();
 
     res.status(200).json({
       success: true,
-      status: transaction.status,
-      receiptUrl: transaction.receiptUrl
+      data: transaction
     });
   } catch (error) {
-    console.error('Payment status check error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to check payment status',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    console.error('Get payment status error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get payment status' });
   }
 };
 
@@ -84,45 +85,54 @@ export const updatePaymentStatus = async (req: AuthenticatedRequest, res: Respon
   try {
     const { transactionId } = req.params;
     const { status } = req.body;
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
 
     // Validate status
     if (!['completed', 'failed', 'pending'].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid status'
-      });
+      return res.status(400).json({ success: false, message: 'Invalid status' });
     }
 
-    const transaction = await Transaction.findByIdAndUpdate(
-      transactionId,
-      { status: status as 'completed' | 'failed' | 'pending' },
+    const transaction = await Transaction.findOneAndUpdate(
+      { _id: transactionId, userId },
+      { status: status as PaymentStatus },
       { new: true }
     );
 
-    // ... rest of the code
+    if (!transaction) {
+      return res.status(404).json({ success: false, message: 'Transaction not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: transaction
+    });
   } catch (error) {
-    // ... error handling
+    console.error('Update payment status error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update payment status' });
   }
 };
 
 export const getTransactionHistory = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?._id;
 
-    const transactions = await Transaction.find({ userId })
-      .sort({ createdAt: -1 });
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
+    const transactions = await Transaction.find({ userId }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      transactions
+      data: transactions
     });
   } catch (error) {
-    console.error('Get transactions error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get transactions',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    console.error('Get transaction history error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get transaction history' });
   }
 };
 
