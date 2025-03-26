@@ -13,6 +13,8 @@ axios.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Ensure credentials are included
+  config.withCredentials = true;
   return config;
 });
 
