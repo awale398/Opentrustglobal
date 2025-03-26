@@ -155,7 +155,7 @@ const Home = () => {
   const { data: budgets, isLoading: budgetsLoading, error: budgetsError } = useQuery<Budget[], Error>(['budgets'], async () => {
     try {
       console.log('Fetching budgets for citizen view...');
-      const response = await axios.get<ApiResponse>('/budgets');
+      const response = await axios.get<ApiResponse>('/api/budgets');
       console.log('Budgets received:', response.data);
       if (response.data.success && Array.isArray(response.data.data)) {
         return response.data.data;
