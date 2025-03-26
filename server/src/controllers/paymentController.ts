@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { generateAccessToken, initiateSTKPush, checkTransactionStatus } from '../services/mpesaService';
 import Transaction from '../models/Transaction';
+import { AuthenticatedRequest } from '../types/custom';
 
-export const initiatePayment = async (req: Request, res: Response) => {
+export const initiatePayment = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { amount, phoneNumber } = req.body;
     const userId = req.user.id; // From auth middleware
@@ -40,7 +41,7 @@ export const initiatePayment = async (req: Request, res: Response) => {
   }
 };
 
-export const checkPaymentStatus = async (req: Request, res: Response) => {
+export const getPaymentStatus = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { transactionId } = req.params;
     const userId = req.user.id;
@@ -79,7 +80,32 @@ export const checkPaymentStatus = async (req: Request, res: Response) => {
   }
 };
 
-export const getTransactions = async (req: Request, res: Response) => {
+export const updatePaymentStatus = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { transactionId } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    if (!['completed', 'failed', 'pending'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
+    const transaction = await Transaction.findByIdAndUpdate(
+      transactionId,
+      { status: status as 'completed' | 'failed' | 'pending' },
+      { new: true }
+    );
+
+    // ... rest of the code
+  } catch (error) {
+    // ... error handling
+  }
+};
+
+export const getTransactionHistory = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user.id;
 

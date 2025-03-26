@@ -19,7 +19,9 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.3",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "axios": "^1.6.7",
+    "@types/axios": "^0.14.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",

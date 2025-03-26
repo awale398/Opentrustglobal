@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { Transaction } from '../models/Transaction';
+import { ITransaction } from '../models/Transaction';
+import Transaction from '../models/Transaction';
 import crypto from 'crypto';
 
 interface MpesaCallback {
