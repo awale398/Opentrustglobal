@@ -1,35 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import axios from '../utils/axios';
 import { jwtDecode } from 'jwt-decode';
-
-// Configure axios defaults
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-axios.defaults.withCredentials = true;
-axios.defaults.headers.common['Content-Type'] = 'application/json';
-
-// Add request interceptor to add token to all requests
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  // Ensure credentials are included
-  config.withCredentials = true;
-  return config;
-});
-
-// Add response interceptor to handle 401 errors
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 interface User {
   id: string;
@@ -85,7 +56,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             logout();
           } else {
             setToken(storedToken);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
             
             if (storedUser) {
               try {
@@ -135,9 +105,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Update state
         setToken(response.data.token);
         setUser(response.data.user);
-        
-        // Update axios headers
-        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       }
       
       return response.data;
@@ -165,9 +132,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setToken(newToken);
       setUser(userData);
       
-      // Update axios headers
-      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      
       return Promise.resolve();
     } catch (error: any) {
       return Promise.reject(new Error(error.response?.data?.message || 'Registration failed'));
@@ -184,7 +148,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       localStorage.removeItem('user');
       setToken(null);
       setUser(null);
-      delete axios.defaults.headers.common['Authorization'];
     }
   };
 

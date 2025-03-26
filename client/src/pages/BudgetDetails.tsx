@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import axios from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
 
 interface Expense {

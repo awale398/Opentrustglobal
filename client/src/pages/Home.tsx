@@ -5,7 +5,7 @@ import { BudgetComparisonChart } from '../components/charts/BudgetComparisonChar
 import { SpendingPieChart } from '../components/charts/SpendingPieChart';
 import { ExpenditureTrendChart } from '../components/charts/ExpenditureTrendChart';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import axios from '../utils/axios';
 
 interface Budget {
   _id: string;
