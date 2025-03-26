@@ -4,9 +4,10 @@
   "description": "Backend for Government Expenditure Tracking System",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node src/index.ts",
+    "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
+    "postinstall": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
