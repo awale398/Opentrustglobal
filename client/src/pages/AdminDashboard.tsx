@@ -76,7 +76,7 @@ const AdminDashboard = () => {
   const { data: budgets = [], isLoading } = useQuery<Budget[]>({
     queryKey: ['budgets'],
     queryFn: async () => {
-      const response = await axios.get('/api/budgets');
+      const response = await axios.get('/budgets');
       return response.data.data || [];
     },
     staleTime: 0, // Always fetch fresh data
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
   // Update budget mutation
   const updateBudgetMutation = useMutation({
     mutationFn: async (updatedBudget: Partial<Budget>) => {
-      const { data } = await axios.put(`/api/budgets/${updatedBudget._id}`, updatedBudget);
+      const { data } = await axios.put(`/budgets/${updatedBudget._id}`, updatedBudget);
       return data;
     },
     onSuccess: () => {
@@ -103,7 +103,7 @@ const AdminDashboard = () => {
   // Add budget mutation
   const addBudgetMutation = useMutation({
     mutationFn: async (newBudget: Omit<Budget, '_id' | 'createdBy'>) => {
-      const { data } = await axios.post('/api/budgets', {
+      const { data } = await axios.post('/budgets', {
         ...newBudget,
         createdBy: {
           _id: user?.id,

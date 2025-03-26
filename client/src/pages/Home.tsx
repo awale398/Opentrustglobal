@@ -127,7 +127,7 @@ const Home = () => {
     queryFn: async () => {
       try {
         console.log('Fetching reports data...');
-        const response = await axios.get('/api/reports');
+        const response = await axios.get('/reports');
         console.log('Reports data received:', response.data);
         return response.data;
       } catch (error) {
@@ -142,7 +142,7 @@ const Home = () => {
     queryFn: async () => {
       try {
         console.log('Fetching monthly data...');
-        const response = await axios.get('/api/reports/monthly');
+        const response = await axios.get('/reports/monthly');
         console.log('Monthly data received:', response.data);
         return response.data.data || mockMonthlyData;
       } catch (error) {
@@ -155,7 +155,7 @@ const Home = () => {
   const { data: budgets, isLoading: budgetsLoading, error: budgetsError } = useQuery<Budget[], Error>(['budgets'], async () => {
     try {
       console.log('Fetching budgets for citizen view...');
-      const response = await axios.get<ApiResponse>('/api/budgets');
+      const response = await axios.get<ApiResponse>('/budgets');
       console.log('Budgets received:', response.data);
       if (response.data.success && Array.isArray(response.data.data)) {
         return response.data.data;
