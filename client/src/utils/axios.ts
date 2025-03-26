@@ -2,7 +2,9 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: process.env.NODE_ENV === 'production' 
+    ? 'https://opentrustglobal-backend.onrender.com/api' 
+    : 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
