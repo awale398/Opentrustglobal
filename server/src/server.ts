@@ -18,7 +18,7 @@ connectDB();
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://opentrustglobal-frontend.onrender.com', 'http://localhost:5173'],
+  origin: 'https://opentrustglobal-frontend.onrender.com',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
