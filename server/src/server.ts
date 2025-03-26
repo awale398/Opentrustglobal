@@ -17,16 +17,12 @@ const app = express();
 connectDB();
 
 // CORS configuration
-const corsOptions = {
-  origin: ['http://localhost:5173', 'https://opentrustglobal-frontend.onrender.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+app.use(cors({
+  origin: true, // Allow all origins
   credentials: true,
-  maxAge: 86400 // 24 hours
-};
-
-// Apply CORS middleware
-app.use(cors(corsOptions));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Middleware
 app.use(express.json());
