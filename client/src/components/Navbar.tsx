@@ -121,7 +121,7 @@ const Navbar: React.FC = () => {
             </Button>
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                {user?.isAdmin && (
+                {user?.role === 'admin' && (
                   <Link
                     to="/admin"
                     className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"
@@ -199,7 +199,7 @@ const Navbar: React.FC = () => {
             </button>
             {isAuthenticated ? (
               <>
-                {user?.isAdmin && (
+                {user?.role === 'admin' && (
                   <Link
                     to="/admin"
                     className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 block px-3 py-2 rounded-md text-base font-medium"
