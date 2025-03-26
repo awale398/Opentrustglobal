@@ -18,11 +18,19 @@ connectDB();
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://opentrustglobal-frontend.onrender.com', 'http://localhost:5173'],
+  origin: function(origin, callback) {
+    const allowedOrigins = ['https://opentrustglobal-frontend.onrender.com', 'http://localhost:5173'];
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Not allowed by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Type', 'Authorization', 'Set-Cookie']
 }));
 
 // Middleware
