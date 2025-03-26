@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db';
 import authRoutes from './routes/authRoutes';
 import budgetRoutes from './routes/budgetRoutes';
+import paymentRoutes from './routes/paymentRoutes';
 import reportRoutes from './routes/reportRoutes';
 
 // Load environment variables
@@ -16,12 +17,19 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://opentrustglobal-frontend.onrender.com'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/budgets', budgetRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/reports', reportRoutes);
 
 // Error handling middleware
