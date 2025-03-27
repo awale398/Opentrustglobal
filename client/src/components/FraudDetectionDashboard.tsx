@@ -123,11 +123,11 @@ const FraudDetectionDashboard: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-sm font-medium">Allocated Amount:</span>
-                      <p className="text-lg">₹{report.allocatedAmount.toLocaleString()}</p>
+                      <p className="text-lg">Ksh {report.allocatedAmount.toLocaleString()}</p>
                     </div>
                     <div>
                       <span className="text-sm font-medium">Spent Amount:</span>
-                      <p className="text-lg">₹{report.spentAmount.toLocaleString()}</p>
+                      <p className="text-lg">Ksh {report.spentAmount.toLocaleString()}</p>
                     </div>
                   </div>
                 </div>
@@ -173,11 +173,11 @@ const FraudDetectionDashboard: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-sm font-medium">Allocated Amount:</span>
-                      <p className="text-lg">₹{report.allocatedAmount.toLocaleString()}</p>
+                      <p className="text-lg">Ksh {report.allocatedAmount.toLocaleString()}</p>
                     </div>
                     <div>
                       <span className="text-sm font-medium">Spent Amount:</span>
-                      <p className="text-lg">₹{report.spentAmount.toLocaleString()}</p>
+                      <p className="text-lg">Ksh {report.spentAmount.toLocaleString()}</p>
                     </div>
                   </div>
                 </div>

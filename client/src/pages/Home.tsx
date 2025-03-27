@@ -318,13 +318,13 @@ const Home = () => {
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Allocated</p>
                         <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                          ${budget.allocatedAmount.toLocaleString()}
+                          Ksh {budget.allocatedAmount.toLocaleString()}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Spent</p>
                         <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                          ${budget.spentAmount.toLocaleString()}
+                          Ksh {budget.spentAmount.toLocaleString()}
                         </p>
                       </div>
                     </div>

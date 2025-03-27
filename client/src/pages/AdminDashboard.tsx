@@ -313,13 +313,13 @@ const AdminDashboard = () => {
                 <div className="flex justify-between items-center">
                   <Label className="text-gray-600 dark:text-gray-400">Allocated:</Label>
                   <span className="text-gray-900 dark:text-white">
-                    ${budget.allocatedAmount.toLocaleString()}
+                    Ksh {budget.allocatedAmount.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <Label className="text-gray-600 dark:text-gray-400">Spent:</Label>
                   <span className="text-gray-900 dark:text-white">
-                    ${budget.spentAmount.toLocaleString()}
+                    Ksh {budget.spentAmount.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
