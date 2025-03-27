@@ -33,10 +33,14 @@ export const getBudgets = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(401).json({ success: false, message: 'Not authenticated' });
     }
 
-    const budgets = await Budget.find({ createdBy: userId });
+    // Fetch all budgets instead of filtering by createdBy
+    const budgets = await Budget.find()
+      .populate('createdBy', 'name email')
+      .sort('-createdAt');
 
     res.json({
       success: true,
+      count: budgets.length,
       data: budgets
     });
   } catch (error) {
