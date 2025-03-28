@@ -1,101 +1,147 @@
 # OpenTrust - Government Budget Management System
 
-<div align="center">
-  <img src="client/public/vite.svg" alt="OpenTrust Logo" width="120" height="120"/>
-  <p><em>Transparent, Secure, and Efficient Budget Management</em></p>
-</div>
+![OpenTrust Logo](logo.png)
+
+here is project being live🚀
+
+https://opentrustglobal-frontend.onrender.com/
+
+your account is a treasure to us❤️😍
+
+**Transparent, Secure, and Efficient Budget Management**
 
 ## 🌟 Features
 
 ### 👤 User Management
-- **Multi-role Authentication**
-  - Admin Dashboard with full control
-  - Citizen Portal for budget tracking
-  - Secure login and registration system
-  - Role-based access control
+```mermaid
+flowchart TD
+  A[User Registration] -->|Login| B[Authentication]
+  B --> C{Role-based Access}
+  C -->|Admin| D[Admin Dashboard]
+  C -->|Citizen| E[Citizen Portal]
+```
+- Multi-role Authentication
+- Admin Dashboard with full control
+- Citizen Portal for budget tracking
+- Secure login and registration system
+- Role-based access control
 
 ### 💰 Budget Management
-- **Comprehensive Budget Control**
-  - Create and manage government budgets
-  - Track allocated and spent amounts
-  - Set project timelines with start and end dates
-  - Monitor budget status (Active/Completed/Pending)
-  - Department-wise budget allocation
-  - Detailed project descriptions
+```mermaid
+flowchart TD
+  A[Create Budget] --> B[Allocate Funds]
+  B --> C[Track Spending]
+  C --> D{Status}
+  D -->|Active| E[Monitor]
+  D -->|Completed| F[Archive]
+  D -->|Pending| G[Review]
+```
+- Comprehensive Budget Control
+- Create and manage government budgets
+- Track allocated and spent amounts
+- Set project timelines with start and end dates
+- Monitor budget status (Active/Completed/Pending)
+- Department-wise budget allocation
+- Detailed project descriptions
 
 ### 🏛️ Department Management
-- **Organized Structure**
-  - Predefined government departments
-  - Department-specific budget tracking
-  - Ministry-level budget allocation
-  - Department-wise spending analysis
+```mermaid
+graph TD
+  A[Government] -->|Ministries| B[Departments]
+  B -->|Budgets| C[Allocation]
+  C -->|Spending| D[Analysis]
+```
+- Organized Structure
+- Predefined government departments
+- Department-specific budget tracking
+- Ministry-level budget allocation
+- Department-wise spending analysis
 
 ### 📊 Analytics & Reporting
-- **Real-time Insights**
-  - Interactive budget visualization
-  - Spending patterns analysis
-  - Department-wise budget distribution
-  - Historical budget tracking
-  - Custom report generation
+```mermaid
+pie
+  title Budget Distribution
+  "Education" : 30
+  "Healthcare" : 25
+  "Infrastructure" : 20
+  "Defense" : 15
+  "Other" : 10
+```
+- Real-time Insights
+- Interactive budget visualization
+- Spending patterns analysis
+- Department-wise budget distribution
+- Historical budget tracking
+- Custom report generation
 
 ### 🔍 Fraud Detection
-- **Advanced Security**
-  - AI-powered fraud detection
-  - Anomaly detection in spending patterns
-  - Suspicious transaction alerts
-  - Risk assessment reports
-  - Real-time monitoring system
+```mermaid
+sequenceDiagram
+  participant User
+  participant System
+  participant AI_Model
+  User->>System: Submit Transaction
+  System->>AI_Model: Analyze Transaction
+  AI_Model-->>System: Risk Assessment
+  System-->>User: Alert if Fraud Detected
+```
+- AI-powered fraud detection
+- Anomaly detection in spending patterns
+- Suspicious transaction alerts
+- Risk assessment reports
+- Real-time monitoring system
 
 ### 🎨 User Interface
-- **Modern Design**
-  - Responsive dashboard layout
-  - Interactive data visualization
-  - Dark/Light mode support
-  - Mobile-friendly interface
-  - Intuitive navigation
+- Modern Design
+- Responsive dashboard layout
+- Interactive data visualization
+- Dark/Light mode support
+- Mobile-friendly interface
+- Intuitive navigation
 
 ### 🔒 Security Features
-- **Enterprise-grade Security**
-  - JWT authentication
-  - Password hashing
-  - Role-based authorization
-  - Secure API endpoints
-  - Data encryption
+```mermaid
+flowchart TD
+  A[User Login] --> B[JWT Token]
+  B --> C{Authorization}
+  C -->|Valid| D[Access Granted]
+  C -->|Invalid| E[Access Denied]
+```
+- JWT authentication
+- Password hashing
+- Role-based authorization
+- Secure API endpoints
+- Data encryption
 
 ## 🛠️ Technology Stack
+```mermaid
+mindmap
+  root((Technology Stack))
+    Frontend
+      React.js
+      Tailwind CSS
+      React Query
+      Chart.js
+    Backend
+      Node.js
+      Express.js
+      MongoDB
+      JWT Authentication
+```
 
-### Frontend
-- React.js with TypeScript
-- Tailwind CSS for styling
-- React Query for state management
-- React Router for navigation
-- Shadcn UI components
-- Chart.js for data visualization
+### 🚀 Getting Started
 
-### Backend
-- Node.js with Express
-- MongoDB database
-- JWT authentication
-- RESTful API architecture
-- TypeScript support
-
-## 🚀 Getting Started
-
-### Prerequisites
+#### Prerequisites
 - Node.js (v14 or higher)
 - MongoDB
 - npm or yarn
 
-### Installation
-
-1. Clone the repository
-```bash
+#### Installation
+```sh
+# Clone the repository
 git clone https://github.com/yourusername/opentrust.git
 cd opentrust
-```
 
-2. Install dependencies
-```bash
 # Install server dependencies
 cd server
 npm install
@@ -105,8 +151,8 @@ cd ../client
 npm install
 ```
 
-3. Set up environment variables
-```bash
+#### Set up environment variables
+```sh
 # In server directory
 cp .env.example .env
 # Edit .env with your configuration
@@ -116,8 +162,8 @@ cp .env.example .env
 # Edit .env with your configuration
 ```
 
-4. Start the development servers
-```bash
+#### Start the development servers
+```sh
 # Start server (from server directory)
 npm run dev
 
@@ -128,48 +174,59 @@ npm run dev
 ## 📝 API Documentation
 
 ### Authentication Endpoints
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
+```mermaid
+sequenceDiagram
+  participant Client
+  participant Server
+  Client->>Server: POST /api/auth/register
+  Client->>Server: POST /api/auth/login
+  Client->>Server: POST /api/auth/logout
+```
 
 ### Budget Endpoints
-- `GET /api/budgets` - Get all budgets
-- `POST /api/budgets` - Create new budget
-- `PUT /api/budgets/:id` - Update budget
-- `DELETE /api/budgets/:id` - Delete budget
+```mermaid
+flowchart TD
+  A[Client Request] --> B[GET /api/budgets]
+  A --> C[POST /api/budgets]
+  A --> D[PUT /api/budgets/:id]
+  A --> E[DELETE /api/budgets/:id]
+```
 
 ### Fraud Detection Endpoints
-- `GET /api/fraud/reports` - Get fraud reports
-- `POST /api/fraud/analyze` - Analyze transaction
-- `GET /api/fraud/statistics` - Get fraud statistics
+```mermaid
+flowchart TD
+  A[Transaction] --> B[Analyze]
+  B --> C{Fraud?}
+  C -->|Yes| D[Flag Alert]
+  C -->|No| E[Approve Transaction]
+```
 
 ## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+```mermaid
+graph TD
+  A[Fork Repository] --> B[Create Feature Branch]
+  B --> C[Commit Changes]
+  C --> D[Push Branch]
+  D --> E[Open Pull Request]
+```
+- Fork the repository
+- Create your feature branch (`git checkout -b feature/AmazingFeature`)
+- Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+- Push to the branch (`git push origin feature/AmazingFeature`)
+- Open a Pull Request
 
 ## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 👥 Authors
-
-- Your Name - Initial work - [YourGithub](https://github.com/yourusername)
+- Abdiawal Aden - Initial work - https://github.com/awale398
 
 ## 🙏 Acknowledgments
-
 - Thanks to all contributors who have helped shape OpenTrust
 - Special thanks to the open-source community
 - Inspired by the need for transparent government spending
+- Made with ❤️ for transparent governance
 
----
+© 2025 OpenTrust. All rights reserved.
 
-<div align="center">
-  <p>Made with ❤️ for transparent governance</p>
-  <p>© 2024 OpenTrust. All rights reserved.</p>
-</div> 
+
